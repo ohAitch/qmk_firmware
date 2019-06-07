@@ -45,6 +45,8 @@ bool	 repEngaged 	= false;
 uint16_t repTimer 		= 0;
 #define  REP_INIT_DELAY 750
 #define  REP_DELAY 		25
+// Incremental state
+#define  INC_DELAY             500
 
 // Mousekeys state
 bool	inMouse 		= false;
@@ -205,11 +207,20 @@ bool process_steno_user(uint16_t keycode, keyrecord_t *record) {
 }
 void matrix_scan_user(void) {
 	// We abuse this for early sending of key
-	// Key repeat only on QWER/SYMB layers
-	if (cMode != QWERTY || !inChord) return;
 
+       if (cMode == STENO) {
+               if (timer_elapsed(repTimer) > INC_DELAY) {
+                       // uprintf("Timer! %d\n", timer_elapsed(repTimer));
+                       steno_release();
+                       repTimer = timer_read();
+               }
+       }
+       // Key repeat only on QWER/SYMB layers
+       #ifdef NO_REPEAT
+               return;
+       #endif
+       if (cMode == QWERTY && inChord) {
 	// Check timers
-#ifndef NO_REPEAT
 	if (repEngaged && timer_elapsed(repTimer) > REP_DELAY) {
 		// Process Key for report
 		processChord(false);
@@ -223,7 +234,7 @@ void matrix_scan_user(void) {
 	if (!repEngaged && timer_elapsed(repTimer) > REP_INIT_DELAY) {
 		repEngaged = true;
 	}
-#endif
+       }
 };
 
 // For Plover NKRO

@@ -128,6 +128,7 @@ static void send_steno_chord(bool final) {
           chord[3] |= 0x40; // PWR key reused as "chord is final" marker
         }
         send_steno_state(GEMINI_STATE_SIZE, true);
+        chord[0] &= ~0x80; // Indicate start of packet
         break;
     }
   }
@@ -165,6 +166,15 @@ static bool update_state_gemini(uint8_t key, bool press) {
     state[idx] &= ~bit;
   }
   return false;
+}
+
+bool steno_release(void) {
+  bool released = (0 != memcmp(chord, state, sizeof(chord)));
+  if(released){
+    memcpy(chord, state, sizeof(chord));
+    send_steno_chord(false);
+  }
+  return released;
 }
 
 bool process_steno(uint16_t keycode, keyrecord_t *record) {
