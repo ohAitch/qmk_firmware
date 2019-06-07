@@ -65,6 +65,10 @@ ifeq ($(strip $(STENO_ENABLE)), yes)
     SRC += $(QUANTUM_DIR)/process_keycode/process_steno.c
 endif
 
+ifeq ($(strip $(STENO_INCREMENTAL)), yes)
+    OPT_DEFS += -DSTENO_INCREMENTAL
+endif
+
 ifeq ($(strip $(VIRTSER_ENABLE)), yes)
     OPT_DEFS += -DVIRTSER_ENABLE
 endif

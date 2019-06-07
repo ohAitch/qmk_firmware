@@ -110,7 +110,12 @@ bool postprocess_steno_user(uint16_t keycode, keyrecord_t *record, steno_mode_t 
 __attribute__ ((weak))
 bool process_steno_user(uint16_t keycode, keyrecord_t *record) { return true; }
 
-static void send_steno_chord(void) {
+static void send_steno_chord(bool final) {
+  bool send_final = final;
+#ifndef STENO_INCREMENTAL
+  if (!final) return;
+  else send_final = false;
+#endif
   if (send_steno_chord_user(mode, chord)) {
     switch(mode) {
       case STENO_MODE_BOLT:
@@ -119,11 +124,16 @@ static void send_steno_chord(void) {
         break;
       case STENO_MODE_GEMINI:
         chord[0] |= 0x80; // Indicate start of packet
+        if(send_final){
+          chord[3] |= 0x40; // PWR key reused as "chord is final" marker
+        }
         send_steno_state(GEMINI_STATE_SIZE, true);
         break;
     }
   }
-  steno_clear_state();
+  if (final) {
+    steno_clear_state();
+  }
 }
 
 uint8_t *steno_get_state(void) {
@@ -197,9 +207,9 @@ bool process_steno(uint16_t keycode, keyrecord_t *record) {
           --pressed;
           if (pressed <= 0) {
             pressed = 0;
-            send_steno_chord();
           }
         }
+        send_steno_chord(pressed == 0);
       }
       return false;
   }
