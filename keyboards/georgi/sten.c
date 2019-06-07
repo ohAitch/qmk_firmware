@@ -152,11 +152,12 @@ out:
 // Update Chord State 
 bool process_steno_user(uint16_t keycode, keyrecord_t *record) { 
 	// Everything happens in here when steno keys come in.
+	// Update key repeat timers
+	repTimer = timer_read();
+
 	// Bail on keyup
 	if (!record->event.pressed) return true;
 
-	// Update key repeat timers
-	repTimer = timer_read();
 	inChord  = true;
 
 	// Switch on the press adding to chord
